@@ -5,31 +5,40 @@ form.addEventListener("submit", (event) => {
 
   form.querySelectorAll(".error").forEach((el) => el.remove());
 
-  const name = form.name.value.trim();
-  const message = form.message.value.trim();
-  const phone = form.phone.value.trim();
-  const email = form.email.value.trim();
+  const [name, message, phone, email] = [
+    "name",
+    "message",
+    "phone",
+    "email",
+  ].map((field) => form[field].value.trim());
 
   let isValid = true;
 
-  if (!name) {
-    showError(form.name, "Name is required");
-    isValid = false;
+  function validateField(regex, value, field, message) {
+    if (!regex.test(value)) {
+      showError(field, message);
+      return false;
+    }
+    return true;
   }
 
-  if (!/^.{5,}$/.test(message)) {
-    showError(form.message, "Message must have at least 5 characters");
-    isValid = false;
-  }
+  const rules = {
+    name: { regex: /.+/, message: "Name is required" },
+    message: { regex: /^.{5,}$/, message: "Message must have at least 5 characters" },
+    phone: { regex: /^\+380\d{9}$/, message: "Phone must start with +380 and have 9 digits after" },
+    email: { regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email" }
+  };
 
-  if (!/^\+380\d{9}$/.test(phone)) {
-    showError(form.phone, "Phone must start with +380 and have 9 digits after");
-    isValid = false;
-  }
+  const values = { name, message, phone, email };
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/) {
-    showError(form["e-mail"], "Invalid email");
-    isValid = false;
+  for (const fieldName in rules) {
+    const rule = rules[fieldName];
+    const value = values[fieldName];
+    const field = form[fieldName];
+    
+    if (!validateField(rule.regex, value, field, rule.message)) {
+      isValid = false;
+    }
   }
 
   if (!isValid) return;
